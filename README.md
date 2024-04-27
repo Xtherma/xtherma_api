@@ -21,9 +21,9 @@ You can find your Fernportal-S/N on fernportal.xtherma.de
 on the overview tab under "Gerät" -> "SN-Fernportal-Modul".
 
 There are many ways to fetch data from the API. Here is an example using curl:
-
+```
 curl -H "Authorization: Bearer YOUR_TOKEN_HERE" https://fernportal.xtherma.de/api/device/FP-YOUR_FP_NUM
-
+```
 The response will look like this:
 
 ```
