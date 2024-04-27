@@ -10,7 +10,7 @@ If you would like a specific setting exposed in the API please tell us via info 
 ## Authentification
 Authentification is currently done via bearer token. 
 Authentification via oAuth2 is under development and will be available shortly.
-A Fernportal-User with a heatpump assigned is needed to access data. 
+A Fernportal-User with a heat pump assigned is needed to access data. 
 
 ## Getting your access token
 Go to your user profile by clicking the grey user icon in the top right of the fernportal and scroll to the bottom to retrieve your access token. 
