@@ -4,7 +4,7 @@ Xtherma-Rest-API v0.1 documentation
 ## Xtherma-Rest-API is a restful API. 
 It is read-only for now.
 The endpoints accessible are temporary and prone to change. 
-If you would like a specific setting exposed in the API please tell us via info [at] xtherma.de
+If you would like a specific setting exposed in the API please tell us via info [at] xtherma.de.
 
 
 ## Authentification
@@ -45,7 +45,7 @@ The response will look like this:
 ```
 
 ### name
-This is the name of the setting. It is the same as on Fernportal
+This is the name of the setting. It is the same as on Fernportal.
 
 ### value
 This is the value of the setting. These values are always standard 16-bit unsigned INT. 
@@ -62,10 +62,10 @@ This is a comma separated list of strings that further describe "value".
 In this example "Betriebsmodus" can be 0 = Standby, 1 = Heizbetrieb, 2 = Kühlbetrieb ...
 
 ### unit
-If "value" is a numerical value, unit contains the unit as a string e.g. "°C", "K" and so on 
+If "value" is a numerical value, unit contains the unit as a string e.g. "°C", "K" and so on. 
 
 ### output_factor
-not used right now
+not used right now.
 
 ### input_factor
 this field contains a mathematical instruction for value as a string. "/10" means you have to divide by 10 to get the real value. 
