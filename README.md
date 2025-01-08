@@ -3,14 +3,14 @@ Xtherma-Rest-API v0.1 documentation
 
 ## Xtherma-Rest-API is a restful API. 
 It is read-only for now.
-The endpoints accessible are temporary and prone to change. 
+The endpoints accessible are temporary and prone to change. Currently, the limit is 1500 requests per day.
 If you would like a specific setting exposed in the API please tell us via info [at] xtherma.de.
 
 
 ## Authentification
 Authentification is currently done via bearer token. 
 Authentification via oAuth2 is under development and will be available shortly.
-A Fernportal-User with a heat pump assigned is needed to access data. 
+A Fernportal-User with an assigned heat pump is needed to access data. 
 
 ## Getting your access token
 Go to your user profile by clicking the grey user icon in the top right of the fernportal and scroll to the bottom to retrieve your access token. 
@@ -49,20 +49,20 @@ This is the name of the setting. It is the same as on Fernportal.
 
 ### value
 This is the value of the setting. These values are always standard 16-bit unsigned INT. 
-If you expect a signed value, e.g. for a temperature you have to sign them yourself.
+If you expect a signed value, e.g., for a temperature, you must sign them yourself.
 
 ### min
-This is the minimal value of "value". If it is empty it default to 0.
+This is the minimal value of "value". If it is empty it defaults to 0.
 
 ### max 
 This is the max value of "value". If it is empty it defaults to 65335.
 
 ### mapping
-This is a comma separated list of strings that further describe "value".
+This is a comma-separated list of strings that further describe "value".
 In this example "Betriebsmodus" can be 0 = Standby, 1 = Heizbetrieb, 2 = Kühlbetrieb ...
 
 ### unit
-If "value" is a numerical value, unit contains the unit as a string e.g. "°C", "K" and so on. 
+If "value" is a numerical value, the unit contains the unit as a string e.g. "°C", "K" and so on. 
 
 ### output_factor
 not used right now.
