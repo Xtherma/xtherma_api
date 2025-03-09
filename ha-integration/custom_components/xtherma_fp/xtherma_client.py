@@ -52,7 +52,10 @@ class XthermaClient:
             return None
 
 async def test():
-    from const import FERNPORTAL_URL, KEY_DATA, KEY_DB_DATA, KEY_ENTRY_NAME, KEY_ENTRY_UNIT, KEY_ENTRY_VALUE
+    from const import (
+        FERNPORTAL_URL, KEY_DATA, KEY_DB_DATA, 
+        KEY_ENTRY_NAME, KEY_ENTRY_UNIT, KEY_ENTRY_VALUE, KEY_ENTRY_INPUT_FACTOR,
+    )
     import os
     api_key = os.environ['API_KEY']
     serial_number = os.environ['SERIAL_NUMBER']
@@ -61,12 +64,24 @@ async def test():
     print("creating instance")
     inst = XthermaClient(url=FERNPORTAL_URL, api_key=api_key, serial_number=serial_number, session=session)
     print("request data")
-    raw = await inst.async_get_data()
+    done = False
+    while not done:
+        try:
+            raw = await inst.async_get_data()
+            done = True
+        except RateLimitError as err:
+            print("Rate limiting, wait...")
+            await asyncio.sleep(10)
+        except Exception as err:
+            print(f"Unknown error {err}")
     print(raw)
-    for e in raw[KEY_DATA]:
-        print(e[KEY_ENTRY_NAME], "=", e[KEY_ENTRY_VALUE], e[KEY_ENTRY_UNIT])
-    for e in raw[KEY_DB_DATA]:
-        print(e[KEY_ENTRY_NAME], "=", e[KEY_ENTRY_VALUE], e[KEY_ENTRY_UNIT])
+    print("------------- data:")
+    for i,e in enumerate(raw[KEY_DATA]):
+        print(f"{i} - {e[KEY_ENTRY_NAME]} = {e[KEY_ENTRY_VALUE]} unit {e[KEY_ENTRY_UNIT]} input {e[KEY_ENTRY_INPUT_FACTOR]}")
+    print("------------- db_data:")
+    for i,e in enumerate(raw[KEY_DB_DATA]):
+        print(f"{i} - {e[KEY_ENTRY_NAME]} = {e[KEY_ENTRY_VALUE]} unit {e[KEY_ENTRY_UNIT]} input {e[KEY_ENTRY_INPUT_FACTOR]}")
+    await session.close()
 
 if __name__ == "__main__":
     asyncio.run(test())
