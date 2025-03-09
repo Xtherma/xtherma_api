@@ -8,8 +8,6 @@ from homeassistant.const import (
     REVOLUTIONS_PER_MINUTE
 )
 from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntity,
     BinarySensorEntityDescription,
 )
 
@@ -141,17 +139,17 @@ SENSOR_DESCRIPTIONS = [
         state_class=SensorStateClass.MEASUREMENT,
         factor = 100,
     ),
-    XtSensorEntityDescription(
+    XtBinarySensorEntityDescription(
         key="state_pk1",
         name="[PK1] Umwälzpumpe Kreis 1 eingeschaltet",
-        state_class=SensorStateClass.MEASUREMENT,
-        factor = 100,
     ),
-    XtSensorEntityDescription(
+    XtBinarySensorEntityDescription(
         key="state_pk2",
         name="[PK2] Umwälzpumpe Kreis 2 eingeschaltet",
-        state_class=SensorStateClass.MEASUREMENT,
-        factor = 100,
+    ),
+    XtBinarySensorEntityDescription(
+        key="state_pww",
+        name="[PWW] Zirkulationspumpe Warmwasser eingeschaltet",
     ),
     XtSensorEntityDescription(
         key="sollwert_warmwasserbereitung",
