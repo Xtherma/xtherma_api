@@ -16,7 +16,7 @@ from .const import (
     FERNPORTAL_RATE_LIMIT_S, 
     KEY_ENTRY_VALUE,
     KEY_ENTRY_NAME,
-    # KEY_ENTRY_INPUT_FACTOR,
+    KEY_ENTRY_INPUT_FACTOR,
 )
 
 class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
@@ -45,20 +45,15 @@ class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
 
     def _apply_input_factor(self, entry) -> float:
         value = float(entry[KEY_ENTRY_VALUE])
-        # input_factor is not reliable, so we will pass this up unprocessed
-        # for now, XtSensorEntityDescription defines the correct factor. 
-        # https://github.com/Xtherma/Xtherma-API/issues/2
-        """
         input = entry[KEY_ENTRY_INPUT_FACTOR]
-        if input == "100":
+        if input == "*100":
             return value * 100
-        if input == "10":
+        if input == "*10":
             return value * 10
         if input == "/10":
             return value / 10
         if input == "/100":
             return value / 100
-        """
         return value
 
     async def _async_update_data(self) -> list[float]:

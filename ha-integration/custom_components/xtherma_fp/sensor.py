@@ -137,8 +137,8 @@ class XthermaSensor(SensorEntity):
         # LOGGER.warning(f"*** get native value of {self._attr_name} factor {self._factor}")
         if self._coordinator.data:
             raw_value = self._coordinator.data[self.index]
-            if self._factor:
-                return raw_value * self._factor
+            # if self._factor:
+            #    return raw_value * self._factor
             return raw_value
         return None
 
