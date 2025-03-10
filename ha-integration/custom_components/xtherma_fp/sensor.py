@@ -75,6 +75,7 @@ async def async_setup_entry(
     for label in coordinator.db_data_labels:
         desc, index = find_best_matching_description(label)
         sensor = build_sensor(desc, index)
+        LOGGER.debug(f"adding {desc.key} ({label})")
         sensors.append(sensor)
 
     LOGGER.debug(f"created {len(sensors)} sensors")

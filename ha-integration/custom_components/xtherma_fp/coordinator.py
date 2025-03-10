@@ -17,6 +17,7 @@ from .const import (
     KEY_ENTRY_VALUE,
     KEY_ENTRY_NAME,
     KEY_ENTRY_INPUT_FACTOR,
+    KEY_ENTRY_UNIT,
 )
 
 class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
@@ -64,7 +65,13 @@ class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
             result = [self._apply_input_factor(entry) for entry in db_data]
             if not self.db_data_labels:
                 LOGGER.debug("initialize labels from db_data")
-                self.db_data_labels = [entry[KEY_ENTRY_NAME] for entry in db_data]
+                self.db_data_labels = []
+                for entry in db_data:
+                    label = entry[KEY_ENTRY_NAME]
+                    inputfactor = entry[KEY_ENTRY_INPUT_FACTOR]
+                    unit = entry[KEY_ENTRY_UNIT]
+                    LOGGER.debug(f"entry \"{label}\" unit={unit} inputfactor={inputfactor}")
+                    self.db_data_labels.append(label)
             return result
         except RateLimitError:
             raise UpdateFailed(f"Error communicating with API, rate limiting")
