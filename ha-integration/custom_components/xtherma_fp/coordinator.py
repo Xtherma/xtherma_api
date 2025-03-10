@@ -20,6 +20,18 @@ from .const import (
     KEY_ENTRY_UNIT,
 )
 
+_FACTORS = {
+    "*1000": 1000,
+    "*100": 100,
+    "*10": 10,
+    "1000": 1000,
+    "100": 100,
+    "10": 10,
+    "/1000": .001,
+    "/100": .01,
+    "/10": .1,
+}
+
 class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
     _client: XthermaClient = None
     
@@ -47,15 +59,8 @@ class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
     def _apply_input_factor(self, entry) -> float:
         value = float(entry[KEY_ENTRY_VALUE])
         input = entry[KEY_ENTRY_INPUT_FACTOR]
-        if input == "*100":
-            return value * 100
-        if input == "*10":
-            return value * 10
-        if input == "/10":
-            return value / 10
-        if input == "/100":
-            return value / 100
-        return value
+        factor = _FACTORS.get(input, 1.0)
+        return factor * value
 
     async def _async_update_data(self) -> list[float]:
         try:
