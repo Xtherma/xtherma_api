@@ -28,7 +28,7 @@ async def async_setup_entry(
     # required configuration
     api_key = entry.data[CONF_API_KEY]
     serial_number = entry.data[CONF_SERIAL_NUMBER]
-    xtherma_data.model = serial_number
+    xtherma_data.serial_fp = serial_number
 
     # create API client connector
     client = XthermaClient(

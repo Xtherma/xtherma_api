@@ -38,7 +38,7 @@ async def async_setup_entry(
         identifiers={(DOMAIN, unique_id)},
         name="My Device",
         manufacturer="Xtherma",
-        model=xtherma_data.model,
+        model=xtherma_data.serial_fp,
     )
 
     if not coordinator.db_data_labels:
