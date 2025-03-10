@@ -133,11 +133,9 @@ SENSOR_DESCRIPTIONS = [
         key="state_evu",
         name="EVU Status",
     ),
-    XtSensorEntityDescription(
-        key="umwaelzpumpe_eingeschaltet",
+    XtBinarySensorEntityDescription(
+        key="state_pk",
         name="[PK] Umwälzpumpe eingeschaltet",
-        state_class=SensorStateClass.MEASUREMENT,
-        factor = 100,
     ),
     XtBinarySensorEntityDescription(
         key="state_pk1",
