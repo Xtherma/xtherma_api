@@ -55,13 +55,13 @@ async def async_setup_entry(
     # 3. create a sensor based on this description
     def find_best_matching_description(label: str) -> tuple[EntityDescription, int]:
         from difflib import SequenceMatcher
-        result = (None, -1)
+        result = None
         similarity = 0
-        for index, desc in enumerate(SENSOR_DESCRIPTIONS):
+        for desc in SENSOR_DESCRIPTIONS:
             s = SequenceMatcher(None, label, desc.name).ratio()
             if s > similarity:
                 similarity = s
-                result = (desc, index)
+                result = desc
         return result
     
     def build_sensor(desc: EntityDescription, index: int) -> SensorEntity:
@@ -72,8 +72,8 @@ async def async_setup_entry(
         raise Exception("Unsupported EntityDescription")
 
     sensors = [ ]
-    for label in coordinator.db_data_labels:
-        desc, index = find_best_matching_description(label)
+    for index, label in enumerate(coordinator.db_data_labels):
+        desc = find_best_matching_description(label)
         sensor = build_sensor(desc, index)
         LOGGER.debug(f"adding {desc.key} ({label})")
         sensors.append(sensor)
@@ -136,7 +136,7 @@ class XthermaSensor(SensorEntity):
     @property
     def native_value(self):
         # LOGGER.warning(f"*** get native value of {self._attr_name} factor {self._factor}")
-        if self._coordinator.data:
+        if self._coordinator.data and self.index < len(self._coordinator.data):
             raw_value = self._coordinator.data[self.index]
             # if self._factor:
             #    return raw_value * self._factor
