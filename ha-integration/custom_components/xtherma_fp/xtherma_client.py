@@ -37,7 +37,6 @@ class XthermaClient:
             async with self._session.get(self._url, headers=headers) as response:
                 response.raise_for_status()
                 data = await response.json()
-                self._ts_last_request = self._now()
                 return data
         except aiohttp.ClientResponseError as err:
             LOGGER.error("API error: %s", err)
