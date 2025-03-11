@@ -8,6 +8,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.config_entries import ConfigEntry
 
+import logging
+
 from .xtherma_client import XthermaClient, RateLimitError, TimeoutError
 from .const import (
     LOGGER,
@@ -70,13 +72,14 @@ class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
             result = [self._apply_input_factor(entry) for entry in db_data]
             if not self.db_data_labels:
                 LOGGER.debug("initialize labels from db_data")
-                self.db_data_labels = []
+                self.db_data_labels = [entry[KEY_ENTRY_NAME] for entry in db_data]
+            if LOGGER.getEffectiveLevel() == logging.DEBUG:
                 for entry in db_data:
                     label = entry[KEY_ENTRY_NAME]
+                    value = entry[KEY_ENTRY_VALUE]
                     inputfactor = entry[KEY_ENTRY_INPUT_FACTOR]
                     unit = entry[KEY_ENTRY_UNIT]
-                    LOGGER.debug(f"entry \"{label}\" unit={unit} inputfactor={inputfactor}")
-                    self.db_data_labels.append(label)
+                    LOGGER.debug(f"entry \"{label}\" value=\"{value}\" unit={unit} inputfactor={inputfactor}")
             return result
         except RateLimitError:
             raise UpdateFailed(f"Error communicating with API, rate limiting")
