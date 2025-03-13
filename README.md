@@ -29,9 +29,10 @@ The response will look like this:
 ```
 {
     "serial_number": "FP-YOUR_FP_NUM",
-    "data": [
+    "settings": [
 		{
-            "name": "Betriebsmodus",
+	    "key" : "002"	
+            "name": "002 - Betriebsmodus",
             "value": 1,
             "min": "",
             "max": "",
