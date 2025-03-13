@@ -13,11 +13,11 @@ import logging
 from .xtherma_client import XthermaClient, RateLimitError, TimeoutError
 from .const import (
     LOGGER,
-    KEY_DB_DATA, 
+    KEY_TELEMETRY, 
     DOMAIN, 
     FERNPORTAL_RATE_LIMIT_S, 
     KEY_ENTRY_VALUE,
-    KEY_ENTRY_NAME,
+    KEY_ENTRY_KEY,
     KEY_ENTRY_INPUT_FACTOR,
     KEY_ENTRY_UNIT,
 )
@@ -37,8 +37,6 @@ _FACTORS = {
 class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
     _client: XthermaClient = None
     
-    db_data_labels: list[str] = None
-
     def __init__(
         self, 
         hass: HomeAssistant, 
@@ -58,28 +56,31 @@ class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
         """Set up the coordinator."""
         pass
 
-    def _apply_input_factor(self, entry) -> float:
-        value = float(entry[KEY_ENTRY_VALUE])
-        input = entry[KEY_ENTRY_INPUT_FACTOR]
-        factor = _FACTORS.get(input, 1.0)
+    def _apply_input_factor(self, rawvalue: str, inputfactor: str) -> float:
+        value = float(rawvalue)
+        factor = _FACTORS.get(inputfactor, 1.0)
         return factor * value
 
     async def _async_update_data(self) -> list[float]:
         try:
             raw = await self._client.async_get_data()
-            db_data = raw[KEY_DB_DATA]
-            LOGGER.debug(f"coordinator read {len(db_data)} db_data values")
-            result = [self._apply_input_factor(entry) for entry in db_data]
-            if not self.db_data_labels:
-                LOGGER.debug("initialize labels from db_data")
-                self.db_data_labels = [entry[KEY_ENTRY_NAME] for entry in db_data]
-            if LOGGER.getEffectiveLevel() == logging.DEBUG:
-                for entry in db_data:
-                    label = entry[KEY_ENTRY_NAME]
-                    value = entry[KEY_ENTRY_VALUE]
+            telemetry = raw[KEY_TELEMETRY]
+            result = {}
+            for entry in telemetry:
+                key = entry.get(KEY_ENTRY_KEY, "").lower()
+                rawvalue = entry.get(KEY_ENTRY_VALUE, None)
+                inputfactor = entry.get(KEY_ENTRY_INPUT_FACTOR, None)
+                if not key or not rawvalue:
+                    LOGGER.error("entry has no 'key'")
+                    continue
+                value = self._apply_input_factor(rawvalue, inputfactor)
+                result[key] = value
+                if LOGGER.getEffectiveLevel() == logging.DEBUG:
+                    rawvalue = entry[KEY_ENTRY_VALUE]
                     inputfactor = entry[KEY_ENTRY_INPUT_FACTOR]
                     unit = entry[KEY_ENTRY_UNIT]
-                    LOGGER.debug(f"entry \"{label}\" value=\"{value}\" unit={unit} inputfactor={inputfactor}")
+                    LOGGER.debug(f"key=\"{key}\" raw=\"{rawvalue}\" value=\"{value}\" unit=\"{unit}\" inputfactor=\"{inputfactor}\"")
+            LOGGER.debug(f"coordinator processed {len(result)}/{len(telemetry)} telemetry values")
             return result
         except RateLimitError:
             raise UpdateFailed(f"Error communicating with API, rate limiting")

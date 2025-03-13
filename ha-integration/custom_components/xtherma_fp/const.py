@@ -17,10 +17,11 @@ FERNPORTAL_RATE_LIMIT_S = 61
 
 # element on top level
 KEY_SERNO = "serial_number"
-KEY_DATA = "data"
-KEY_DB_DATA = "db_data"
+KEY_TELEMETRY = "telemetry"
+KEY_SETTINGS = "settings"
 
 # data entry keys in data and db_data
+KEY_ENTRY_KEY = "key"
 KEY_ENTRY_NAME = "name"
 KEY_ENTRY_VALUE = "value"
 KEY_ENTRY_MIN = "min"

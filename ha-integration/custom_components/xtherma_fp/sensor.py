@@ -41,46 +41,30 @@ async def async_setup_entry(
         model=xtherma_data.serial_fp,
     )
 
-    if not coordinator.db_data_labels:
-        LOGGER.error(f"need data labels from first refresh to setup platform")
+    if not coordinator.data:
+        LOGGER.error(f"cannot complete without data from initial refresh")
         return False
 
-    # perhaps this is a bit over-engineered. But as of now, REST data comes as a huge 
-    # list of entries without well defined keys. Maybe the order changes in the future.
-    # To be a bit more resilient against changes, we do the following:
-    # 1. we consider the order of the initial data fetch as the official base line
-    # 2. for each label, find the description in SENSOR_DESCRIPTIONS whose .name 
-    #    best matches the label. As these are human readable texts with whitespace,
-    #    use SequenceMatcher() instead of a hard string compare
-    # 3. create a sensor based on this description
-    def find_best_matching_description(label: str) -> tuple[EntityDescription, int]:
-        from difflib import SequenceMatcher
-        result = None
-        similarity = 0
-        for desc in SENSOR_DESCRIPTIONS:
-            s = SequenceMatcher(None, label, desc.name).ratio()
-            if s > similarity:
-                similarity = s
-                result = desc
-        return result
-    
-    def build_sensor(desc: EntityDescription, index: int) -> SensorEntity:
+    def build_sensor(desc: EntityDescription) -> SensorEntity:
         if isinstance(desc, XtBinarySensorEntityDescription):
-            return XthermaBinarySensor(coordinator, device_info, desc, index)
+            return XthermaBinarySensor(coordinator, device_info, desc)
         if isinstance(desc, XtSensorEntityDescription):
-           return XthermaSensor(coordinator, device_info, desc, index)
+           return XthermaSensor(coordinator, device_info, desc)
         raise Exception("Unsupported EntityDescription")
 
+    LOGGER.debug(f"initialize {len(coordinator.data)} sensors")
     sensors = [ ]
-    for index, label in enumerate(coordinator.db_data_labels):
-        desc = find_best_matching_description(label)
-        sensor = build_sensor(desc, index)
-        LOGGER.debug(f"adding {desc.key} ({label})")
-        sensors.append(sensor)
-
+    for key in coordinator.data:
+        desc = next((d for d in SENSOR_DESCRIPTIONS if d.key.lower() == key.lower()), None)
+        if not desc:
+            LOGGER.error(f"No sensor description found for key {key}")
+        else:
+            LOGGER.debug(f"adding sensor {desc.key}")
+            sensor = build_sensor(desc)
+            sensors.append(sensor)
     LOGGER.debug(f"created {len(sensors)} sensors")
     async_add_entities(sensors)
-    
+
     @callback
     def _async_update_data():
         pass
@@ -88,23 +72,24 @@ async def async_setup_entry(
     remove_fn = coordinator.async_add_listener(_async_update_data)
     config_entry.async_on_unload(remove_fn)
 
+    
     return True
 
 class XthermaBinarySensor(BinarySensorEntity):
-    def __init__(self, coordinator: DataUpdateCoordinator, device_info: DeviceInfo, description: XtBinarySensorEntityDescription, index: int):
+    def __init__(self, coordinator: DataUpdateCoordinator, device_info: DeviceInfo, description: XtBinarySensorEntityDescription):
         self._coordinator = coordinator
         self.entity_description = description
         self._attr_device_info = device_info
         self._attr_device_class = description.device_class
         self._attr_unique_id = f"{DOMAIN}_{description.key}"
         self.entity_id = f"sensor.{self._attr_unique_id}"
-        self.index = index
 
     @property
     def is_on(self) -> bool:
         if self._coordinator.data:
-            raw_value = self._coordinator.data[self.index]
-            return raw_value > 0
+            raw_value = self._coordinator.data.get(self.entity_description.key, None)
+            if raw_value:
+                return raw_value > 0
         return None
 
     """
@@ -121,7 +106,7 @@ class XthermaBinarySensor(BinarySensorEntity):
         return self._coordinator.last_update_success
 
 class XthermaSensor(SensorEntity):
-    def __init__(self, coordinator: DataUpdateCoordinator, device_info: DeviceInfo, description: XtSensorEntityDescription, index: int):
+    def __init__(self, coordinator: DataUpdateCoordinator, device_info: DeviceInfo, description: XtSensorEntityDescription):
         self._coordinator = coordinator
         self.entity_description = description
         self._attr_device_info = device_info
@@ -131,13 +116,12 @@ class XthermaSensor(SensorEntity):
         self._factor = description.factor
         self._attr_unique_id = f"{DOMAIN}_{description.key}"
         self.entity_id = f"sensor.{self._attr_unique_id}"
-        self.index = index
 
     @property
     def native_value(self):
         # LOGGER.warning(f"*** get native value of {self._attr_name} factor {self._factor}")
-        if self._coordinator.data and self.index < len(self._coordinator.data):
-            raw_value = self._coordinator.data[self.index]
+        if self._coordinator.data:
+            raw_value = self._coordinator.data.get(self.entity_description.key, None)
             # if self._factor:
             #    return raw_value * self._factor
             return raw_value

@@ -40,7 +40,7 @@ class XthermaClient:
                 return data
         except aiohttp.ClientResponseError as err:
             LOGGER.error("API error: %s", err)
-            if err.status == 429:
+            if err.status == 429:   
                 raise RateLimitError()
             raise GeneralError(err.status)
         except asyncio.TimeoutError:
@@ -52,7 +52,7 @@ class XthermaClient:
 
 async def test():
     from const import (
-        FERNPORTAL_URL, KEY_DATA, KEY_DB_DATA, 
+        FERNPORTAL_URL, KEY_SETTINGS, KEY_TELEMETRY,
         KEY_ENTRY_NAME, KEY_ENTRY_UNIT, KEY_ENTRY_VALUE, KEY_ENTRY_INPUT_FACTOR,
     )
     import os
@@ -74,11 +74,14 @@ async def test():
         except Exception as err:
             print(f"Unknown error {err}")
     print(raw)
-    print("------------- data:")
-    for i,e in enumerate(raw[KEY_DATA]):
+    print("------------- top-level:")
+    for key in raw:
+        print(f"{key}")
+    print("------------- settings:")
+    for i,e in enumerate(raw[KEY_SETTINGS]):
         print(f"{i} - {e[KEY_ENTRY_NAME]} = {e[KEY_ENTRY_VALUE]} unit {e[KEY_ENTRY_UNIT]} input {e[KEY_ENTRY_INPUT_FACTOR]}")
-    print("------------- db_data:")
-    for i,e in enumerate(raw[KEY_DB_DATA]):
+    print("------------- telemetry:")
+    for i,e in enumerate(raw[KEY_TELEMETRY]):
         print(f"{i} - {e[KEY_ENTRY_NAME]} = {e[KEY_ENTRY_VALUE]} unit {e[KEY_ENTRY_UNIT]} input {e[KEY_ENTRY_INPUT_FACTOR]}")
     await session.close()
 
