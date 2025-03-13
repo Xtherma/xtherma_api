@@ -44,10 +44,15 @@ The response will look like this:
     ]
 }
 ```
+### key
+This is a unique identifier for a given settings. 
 
 ### name
-This is the name of the setting. It is the same as on Fernportal.
+This is the name of the settin. It is the same as on Fernportal.
 
+```diff
+- This key/value pair will soon be deprecated.
+```
 ### value
 This is the value of the setting. These values are always standard 16-bit unsigned INT. 
 If you expect a signed value, e.g., for a temperature, you must sign them yourself.
