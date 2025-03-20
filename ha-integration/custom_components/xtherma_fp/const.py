@@ -4,6 +4,10 @@ import logging
 
 DOMAIN = "xtherma_fp"
 
+# current version of integration
+VERSION = 1
+MINOR_VERSION = 0
+
 # configuration keys.
 # CONF_API_KEY is already defined by homeassistant.const
 CONF_SERIAL_NUMBER = "serial_number"

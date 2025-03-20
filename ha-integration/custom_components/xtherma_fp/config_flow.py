@@ -22,13 +22,17 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     """Validate the user input allows us to connect."""
 
      # Return info that you want to store in the config entry.
+    LOGGER.debug("validate_input")
     return {"title": "Xtherma"}
 
 
-class AcaiaConfigFlow(ConfigFlow, domain=DOMAIN):
+class XthermaConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for xtherma."""
 
+    LOGGER.debug("starting config flow")
+
     VERSION = 1
+    MINOR_VERSION = 0
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None

@@ -1,0 +1,23 @@
+{
+  "title": "Titel1",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Xtherma Fernportal",
+        "description": "Zugangsdaten für das Fernportal",
+        "data": {
+          "api_key": "API Token",
+          "serial_number": "SN Fernportal-Modul"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  }
+}

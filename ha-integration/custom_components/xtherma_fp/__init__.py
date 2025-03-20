@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.const import CONF_API_KEY, Platform
 
-from .const import FERNPORTAL_URL, CONF_SERIAL_NUMBER, DOMAIN, LOGGER
+from .const import FERNPORTAL_URL, CONF_SERIAL_NUMBER, DOMAIN, LOGGER, VERSION
 from .xtherma_client import XthermaClient
 from .coordinator import XthermaDataUpdateCoordinator
 from .xtherma_data import XthermaData
@@ -47,4 +47,14 @@ async def async_setup_entry(
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    LOGGER.debug(f"unload integration")
     return await hass.config_entries.async_unload_platforms(entry, _PLATFORMS)
+
+async def async_migrate_entry(hass, config_entry: ConfigEntry):
+    LOGGER.debug("Migrating configuration from version %s.%s", config_entry.version, config_entry.minor_version)
+
+    if config_entry.version > VERSION:
+        LOGGER.error("downgrade not supported")
+        return False
+
+    return True
