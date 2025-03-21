@@ -3,13 +3,16 @@
 from __future__ import annotations
 from typing import Any
 import voluptuous as vol
+import aiohttp
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import aiohttp_client
 
 from .const import DOMAIN, FERNPORTAL_URL, CONF_SERIAL_NUMBER, LOGGER
+from .xtherma_client import XthermaClient, GeneralError, RateLimitError, TimeoutError
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
@@ -19,35 +22,50 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
-    """Validate the user input allows us to connect."""
+    api_key = data.get(CONF_API_KEY)
+    serial_number = data.get(CONF_SERIAL_NUMBER)
+    if not api_key or not serial_number:
+        raise BadArguments()
+    
+    if not serial_number.startswith("FP-"):
+        raise BadArguments()
+    
+    session = aiohttp_client.async_get_clientsession(hass)
+    inst = XthermaClient(url=FERNPORTAL_URL, api_key=api_key, serial_number=serial_number, session=session)
 
-     # Return info that you want to store in the config entry.
-    LOGGER.debug("validate_input")
+    await inst.async_get_data()
+
+    await session.close()
+
     return {"title": "Xtherma"}
 
 
 class XthermaConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for xtherma."""
-
-    LOGGER.debug("starting config flow")
-
     VERSION = 1
     MINOR_VERSION = 0
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the initial step."""
         errors: dict[str, str] = {}
+
         if user_input is not None:
             try:
                 info = await validate_input(self.hass, user_input)
-            except CannotConnect:
+            except BadArguments:
+                LOGGER.debug("BadArguments")
+                errors["base"] = "bad_arguments"
+            except RateLimitError:
+                LOGGER.debug("RateLimitError")
+                errors["base"] = "rate_limit"
+            except TimeoutError:
+                LOGGER.debug("TimeoutError")
+                errors["base"] = "timeout"
+            except GeneralError:
+                LOGGER.debug("GeneralError")
                 errors["base"] = "cannot_connect"
-            except InvalidAuth:
-                errors["base"] = "invalid_auth"
             except Exception:
-                LOGGER.exception("Unexpected exception")
+                LOGGER.debug("Unexpected exception")
                 errors["base"] = "unknown"
             else:
                 return self.async_create_entry(title=info["title"], data=user_input)
@@ -56,10 +74,5 @@ class XthermaConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
         )
 
-
-class CannotConnect(HomeAssistantError):
-    """Error to indicate we cannot connect."""
-
-
-class InvalidAuth(HomeAssistantError):
-    """Error to indicate there is invalid auth."""
+class BadArguments(HomeAssistantError):
+    pass

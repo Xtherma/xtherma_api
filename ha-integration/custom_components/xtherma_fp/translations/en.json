@@ -1,5 +1,5 @@
 {
-  "title": "Titel1",
+  "title": "Xtherma Fernportal",
   "config": {
     "step": {
       "user": {
@@ -12,12 +12,11 @@
       }
     },
     "error": {
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
-    },
-    "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "bad_arguments": "Error in authorization data format",
+      "rate_limit": "Too many requests to Fernportal, wait 1 minute",
+      "timeout": "No response",
+      "cannot_connect": "Could not connect to Fernportal",
+      "unknown": "Unknown Error"
     }
   }
 }
