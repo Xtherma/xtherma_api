@@ -12,7 +12,9 @@ Anschließend Home Assistant neu starten.
 
 In **Einstellungen > Geräte & Dienste** auf **Integration hinzufügen** klicken. Der Konfigurationsdialog fragt nach dem REST-API Token und der Seriennummer.
 
-Beides kann aus dem Fernportal herauskopiert werden (Start Seite, Mein Account.)
+Beides kann aus dem Fernportal herauskopiert werden (Start Seite -> Mein Account.)
+
+Achtung: der Konfigurationsdialog prüft die eingegebenen Daten, indem testweise eine Anfrage geschickt wird. Wenn anschließend die eigentliche Integration startet, muss sie das Download Limit (aktuell 1 Abfrage pro Minute) abwarten. Das bedeutet, dass die Sensoren erst nach ca. einer Minute erscheinen.
 
 ## Funktion
 
