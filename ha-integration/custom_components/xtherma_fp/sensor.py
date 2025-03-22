@@ -14,12 +14,13 @@ from homeassistant.helpers.device_registry import (
 )
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.const import STATE_ON
+from homeassistant.helpers import device_registry
 
 from .xtherma_data import XthermaData
 from .const import (
     LOGGER,
     DOMAIN, 
+    MANUFACTURER,
 )
 from .sensor_descriptors import SENSOR_DESCRIPTIONS, XtSensorEntityDescription, XtBinarySensorEntityDescription
 from .coordinator import XthermaDataUpdateCoordinator
@@ -46,15 +47,14 @@ def _initialize_sensors(
     assert(not xtherma_data.sensors_initialized)
 
     coordinator = xtherma_data.coordinator
-    unique_id = xtherma_data.unique_id
 
     assert(coordinator.data is not None)
 
     LOGGER.debug(f"Initialize {len(coordinator.data)} sensors")
     device_info = DeviceInfo(
-        identifiers={(DOMAIN, unique_id)},
-        name="My Device",
-        manufacturer="Xtherma",
+        identifiers={(DOMAIN, xtherma_data.serial_fp)},
+        name="Xtherma Wärmepumpe",
+        manufacturer=MANUFACTURER,
         model=xtherma_data.serial_fp,
     )
 
@@ -83,6 +83,20 @@ def _try_initialize_sensors(
     else:
         LOGGER.debug("Data coordinator has no data yet, wait for next refresh")
 
+def _delete_legacy_device(hass: HomeAssistant):
+    LOGGER.debug("Looking for legacy device in device registry")
+    dev_reg = device_registry.async_get(hass)
+    id_to_delete: str|None = None
+    for device in dev_reg.devices.values():
+        if device.manufacturer == MANUFACTURER and len(device.identifiers) == 1:
+            (id1, id2) = device.identifiers.copy().pop()
+            if id1 == DOMAIN and not id2:
+                LOGGER.debug(f"Deleting device = {device.name} {device.id} {list(device.identifiers)}")
+                id_to_delete = device.id
+                break
+    if id_to_delete:
+        dev_reg.async_remove_device(id_to_delete)
+
 # HA calls this when sensor platform is initialized
 async def async_setup_entry(
     hass: HomeAssistant, 
@@ -91,8 +105,11 @@ async def async_setup_entry(
 ) -> bool:
     xtherma_data: XthermaData = hass.data[DOMAIN][config_entry.entry_id]
 
-    LOGGER.debug(f"Setup sensor platform {xtherma_data.unique_id}")
-    
+    LOGGER.debug(f"Setup sensor platform")
+
+    # initial versions created DeviceInfo with a bad identifier - find and remove
+    _delete_legacy_device(hass)
+
     # Normally, __init__.py will have done an initial fetch and we should
     # have data in the coordinator to initialize the sensors.
     # If not (eg. because we just completed the config flow or the integration was 

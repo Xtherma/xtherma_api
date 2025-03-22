@@ -8,6 +8,8 @@ DOMAIN = "xtherma_fp"
 VERSION = 1
 MINOR_VERSION = 0
 
+MANUFACTURER = "Xtherma"
+
 # configuration keys.
 # CONF_API_KEY is already defined by homeassistant.const
 CONF_SERIAL_NUMBER = "serial_number"

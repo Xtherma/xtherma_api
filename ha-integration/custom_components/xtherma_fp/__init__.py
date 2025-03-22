@@ -22,7 +22,7 @@ async def async_setup_entry(
 
     # setup global data
     hass.data.setdefault(DOMAIN, {})
-    xtherma_data = XthermaData(entry.unique_id)
+    xtherma_data = XthermaData()
     hass.data[DOMAIN][entry.entry_id] = xtherma_data
 
     # required configuration
