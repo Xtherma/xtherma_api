@@ -31,11 +31,9 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         raise BadArguments()
     
     session = aiohttp_client.async_get_clientsession(hass)
-    inst = XthermaClient(url=FERNPORTAL_URL, api_key=api_key, serial_number=serial_number, session=session)
+    client = XthermaClient(url=FERNPORTAL_URL, api_key=api_key, serial_number=serial_number, session=session)
 
-    await inst.async_get_data()
-
-    await session.close()
+    await client.async_get_data()
 
     return {"title": "Xtherma"}
 

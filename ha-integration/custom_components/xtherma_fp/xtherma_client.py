@@ -39,7 +39,7 @@ class XthermaClient:
                 data = await response.json()
                 return data
         except aiohttp.ClientResponseError as err:
-            LOGGER.error("API error: %s", err)
+            LOGGER.debug("API error: %s", err)
             if err.status == 429:   
                 raise RateLimitError()
             raise GeneralError(err.status)

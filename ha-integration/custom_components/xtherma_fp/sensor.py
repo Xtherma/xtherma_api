@@ -22,18 +22,35 @@ from .const import (
     DOMAIN, 
 )
 from .sensor_descriptors import SENSOR_DESCRIPTIONS, XtSensorEntityDescription, XtBinarySensorEntityDescription
+from .coordinator import XthermaDataUpdateCoordinator
 
-async def async_setup_entry(
-    hass: HomeAssistant, 
-    config_entry: ConfigEntry, 
-    async_add_entities: AddEntitiesCallback
-) -> bool:
-    LOGGER.debug(f"setup sensor platform")
+# Create a sensor entity based on description.
+def build_sensor(
+        desc: EntityDescription, 
+        coordinator: XthermaDataUpdateCoordinator, 
+        device_info: DeviceInfo
+        ) -> SensorEntity:
+    if isinstance(desc, XtBinarySensorEntityDescription):
+        return XthermaBinarySensor(coordinator, device_info, desc)
+    if isinstance(desc, XtSensorEntityDescription):
+        return XthermaSensor(coordinator, device_info, desc)
+    raise Exception("Unsupported EntityDescription")
 
-    xtherma_data: XthermaData = hass.data[DOMAIN][config_entry.entry_id]
+# Create and register sensor entities based on coordinator.data.
+# Call site must ensure there is data and sensors are not already
+# registerd.
+def _initialize_sensors(
+        xtherma_data: XthermaData,
+        async_add_entities: AddEntitiesCallback
+        ):
+    assert(not xtherma_data.sensors_initialized)
+
     coordinator = xtherma_data.coordinator
-    
-    unique_id = config_entry.entry_id
+    unique_id = xtherma_data.unique_id
+
+    assert(coordinator.data is not None)
+
+    LOGGER.debug(f"Initialize {len(coordinator.data)} sensors")
     device_info = DeviceInfo(
         identifiers={(DOMAIN, unique_id)},
         name="My Device",
@@ -41,38 +58,57 @@ async def async_setup_entry(
         model=xtherma_data.serial_fp,
     )
 
-    if not coordinator.data:
-        LOGGER.error(f"cannot complete without data from initial refresh")
-        return False
-
-    def build_sensor(desc: EntityDescription) -> SensorEntity:
-        if isinstance(desc, XtBinarySensorEntityDescription):
-            return XthermaBinarySensor(coordinator, device_info, desc)
-        if isinstance(desc, XtSensorEntityDescription):
-           return XthermaSensor(coordinator, device_info, desc)
-        raise Exception("Unsupported EntityDescription")
-
-    LOGGER.debug(f"initialize {len(coordinator.data)} sensors")
     sensors = [ ]
     for key in coordinator.data:
         desc = next((d for d in SENSOR_DESCRIPTIONS if d.key.lower() == key.lower()), None)
         if not desc:
             LOGGER.error(f"No sensor description found for key {key}")
         else:
-            LOGGER.debug(f"adding sensor {desc.key}")
-            sensor = build_sensor(desc)
+            LOGGER.debug(f"Adding sensor {desc.key}")
+            sensor = build_sensor(desc, coordinator, device_info)
             sensors.append(sensor)
-    LOGGER.debug(f"created {len(sensors)} sensors")
+    LOGGER.debug(f"Created {len(sensors)} sensors")
     async_add_entities(sensors)
+
+    xtherma_data.sensors_initialized = True
+
+# Initialize sensor entities if there is valid data in coordinator.
+def _try_initialize_sensors(
+    xtherma_data: XthermaData,
+    async_add_entities: AddEntitiesCallback
+):
+    coordinator = xtherma_data.coordinator
+    if coordinator.data:
+        _initialize_sensors(xtherma_data, async_add_entities)
+    else:
+        LOGGER.debug("Data coordinator has no data yet, wait for next refresh")
+
+# HA calls this when sensor platform is initialized
+async def async_setup_entry(
+    hass: HomeAssistant, 
+    config_entry: ConfigEntry, 
+    async_add_entities: AddEntitiesCallback
+) -> bool:
+    xtherma_data: XthermaData = hass.data[DOMAIN][config_entry.entry_id]
+
+    LOGGER.debug(f"Setup sensor platform {xtherma_data.unique_id}")
+    
+    # Normally, __init__.py will have done an initial fetch and we should
+    # have data in the coordinator to initialize the sensors.
+    # If not (eg. because we just completed the config flow or the integration was 
+    # restarted too rapidly) we will try again in the listener.
+    _try_initialize_sensors(xtherma_data, async_add_entities)
 
     @callback
     def _async_update_data():
-        pass
+        if not xtherma_data.sensors_initialized:
+            _try_initialize_sensors(xtherma_data, async_add_entities)
 
-    remove_fn = coordinator.async_add_listener(_async_update_data)
+    # Note: data coordinators only fetch data as long as there is at least one
+    # listener
+    remove_fn = xtherma_data.coordinator.async_add_listener(_async_update_data)
     config_entry.async_on_unload(remove_fn)
 
-    
     return True
 
 class XthermaBinarySensor(BinarySensorEntity):

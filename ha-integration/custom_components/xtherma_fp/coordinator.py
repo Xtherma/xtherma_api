@@ -34,7 +34,7 @@ _FACTORS = {
     "/10": .1,
 }
 
-class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
+class XthermaDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float]]):
     _client: XthermaClient = None
     
     def __init__(
@@ -63,6 +63,7 @@ class XthermaDataUpdateCoordinator(DataUpdateCoordinator[None]):
 
     async def _async_update_data(self) -> list[float]:
         try:
+            LOGGER.debug(f"coordinator requesting new data")
             raw = await self._client.async_get_data()
             telemetry = raw[KEY_TELEMETRY]
             result = {}

@@ -18,11 +18,11 @@ async def async_setup_entry(
     hass: HomeAssistant, 
     entry: ConfigEntry, 
 ) -> bool:
-    LOGGER.debug(f"setup integration")
+    LOGGER.debug(f"Setup integration")
 
     # setup global data
-    xtherma_data = XthermaData()
     hass.data.setdefault(DOMAIN, {})
+    xtherma_data = XthermaData(entry.unique_id)
     hass.data[DOMAIN][entry.entry_id] = xtherma_data
 
     # required configuration
@@ -37,9 +37,20 @@ async def async_setup_entry(
         serial_number = serial_number, 
         session = async_get_clientsession(hass))
 
-    # create data coordinator which will fetch data from client, including rate limiting
+    # create data coordinator 
+    # first refresh may take some time, especially if the config flow just ran,
+    # so do this asynchronously
     xtherma_data.coordinator = XthermaDataUpdateCoordinator(hass, entry, client)
-    await xtherma_data.coordinator.async_config_entry_first_refresh()
+
+    # If we just passed the config flow, we will not be able to immediately fetch
+    # fresh data (see https://github.com/Xtherma/Xtherma-API/issues/5)
+    # We will therefore ignore errors here.
+    try:
+        LOGGER.debug("Attempting initial data fetch")
+        await xtherma_data.coordinator.async_config_entry_first_refresh()
+    except Exception:
+        LOGGER.debug("Data fetch failed, probably due to rate limiting. Will try again.")
+        pass
 
     # initialize platforms
     await hass.config_entries.async_forward_entry_setups(entry, _PLATFORMS)
@@ -47,14 +58,14 @@ async def async_setup_entry(
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    LOGGER.debug(f"unload integration")
+    LOGGER.debug("Unload integration")
     return await hass.config_entries.async_unload_platforms(entry, _PLATFORMS)
 
 async def async_migrate_entry(hass, config_entry: ConfigEntry):
     LOGGER.debug("Migrating configuration from version %s.%s", config_entry.version, config_entry.minor_version)
 
     if config_entry.version > VERSION:
-        LOGGER.error("downgrade not supported")
+        LOGGER.error("Downgrade not supported")
         return False
 
     return True
