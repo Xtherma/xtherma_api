@@ -1,5 +1,6 @@
 Xtherma-Rest-API v0.1 documentation
-__
+
+---
 
 ## Changelog
 
@@ -10,7 +11,7 @@ __
 - h1_target, h2_target, c1_target und c2_target sind die Zielwerte der Kreise 1 und 2 jeweils im Heizen und Kühlen.
 - h2_target ist angepasst, war versehentlich falsch eingetragen
 
-__
+---
 
 ## Xtherma-Rest-API is a restful API. 
 It is read-only for now.
