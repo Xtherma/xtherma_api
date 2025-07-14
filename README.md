@@ -4,8 +4,9 @@ Xtherma-Rest-API v0.1 documentation
 
 ## Changelog
 
-07.07.2025: Die Änderungen kamen mit der der Einführung von TCP dazu:
-- Wir hatten pk 2x in der API, sind jetzt pk (PK ein/aus) und pkl (PK Leistung in %).
+Juli 2025: Die Änderungen kamen mit der der Einführung von TCP dazu:
+- Es gab pk 2x in der API, sind jetzt pk (PK ein/aus) und pkl (PK Leistung in %).
+- "mode" wurde entfernt, "mode_3" wurde zu "mode" umbenannt. Damit ist der aktuelle Betrieb einfacher und eindeutig zu erkennen
 - Error (Wärmepumpe ungestört) indiziert Berücksichtigt falls der Wert von 1 auf 0 geht die folgende Meldungen: P16, F20, S14, S13, S05, S08, F01, F02, F03, F04, F05, F06, F07, F08, F10, F11, F12, P11, E01, E02, E03, E04, E05, E06, E07, E08
 - Controller_v ist die aktuelle Regler-Version (240 = V2.40).
 - h1_target, h2_target, c1_target und c2_target sind die Zielwerte der Kreise 1 und 2 jeweils im Heizen und Kühlen.
